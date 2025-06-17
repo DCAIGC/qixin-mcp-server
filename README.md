@@ -67,7 +67,18 @@ npx qixin-mcp-server --sse
 
 # 或通过环境变量
 MCP_SSE=true npx qixin-mcp-server
+
+# 使用自定义端口
+PORT=8080 MCP_SSE=true npx qixin-mcp-server
 ```
+
+SSE 模式提供以下端点：
+- `GET /mcp` - Server-Sent Events 连接
+- `POST /mcp` - 发送 JSON-RPC 消息
+- `GET /health` - 健康检查
+- `GET /` - 服务器信息
+
+详细使用方法请参考 [SSE 使用指南](docs/sse-usage.md)。
 
 ## 使用方法
 

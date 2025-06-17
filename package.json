@@ -13,8 +13,11 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsx watch src/server.ts",
+    "dev:sse": "MCP_SSE=true tsx watch src/server.ts",
     "start": "node dist/server.js",
+    "start:sse": "MCP_SSE=true node dist/server.js",
     "test": "jest",
+    "test:sse": "node examples/sse-test.js",
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write src/**/*.ts"
   },
@@ -46,6 +49,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.3",
     "axios": "^1.10.0",
+    "cors": "^2.8.5",
     "dotenv": "^16.5.0"
   }
 }

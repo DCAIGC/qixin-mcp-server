@@ -6,10 +6,11 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import { config } from './config/index';
+import { config, Config } from './config/index';
 import { QixinApiClient } from './services/qixin-api';
 import { Logger } from './utils/logger';
 import { GetEnterpriseBasicInfoArgs, QixinApiError } from './types/index';
+import { SSEServerManager } from './server/sse-server';
 
 /**
  * 启信宝 MCP Server 类
@@ -18,6 +19,7 @@ class QixinMcpServer {
   private server: Server;
   private apiClient: QixinApiClient;
   private logger: Logger;
+  private sseServerManager?: SSEServerManager;
 
   constructor() {
     this.logger = Logger.create('QixinMcpServer');
@@ -189,13 +191,51 @@ class QixinMcpServer {
    * 启动 SSE 模式
    */
   private async startSSEMode(): Promise<void> {
-    this.logger.info('启动 SSE 模式');
+    const port = Config.getPort();
+    this.logger.info(`启动 SSE 模式，端口: ${port}`);
     
-    // 注意：MCP SDK 目前主要支持 stdio 模式
-    // SSE 模式需要额外的实现，这里仅作为占位符
-    this.logger.warn('SSE 模式暂未完全实现，将使用 stdio 模式');
+    try {
+      // 创建 SSE 服务器管理器
+      this.sseServerManager = new SSEServerManager(this.server, port);
+      
+      this.logger.info(`SSE 服务器已启动，监听端口: ${port}`);
+      this.logger.info('可用端点:');
+      this.logger.info(`  - GET  http://localhost:${port}/mcp    - SSE 连接`);
+      this.logger.info(`  - POST http://localhost:${port}/mcp    - 发送消息`);
+      this.logger.info(`  - GET  http://localhost:${port}/health - 健康检查`);
+      this.logger.info(`  - GET  http://localhost:${port}/       - 服务器信息`);
+
+      // 处理进程退出信号
+      this.setupGracefulShutdown();
+
+    } catch (error) {
+      this.logger.error('启动 SSE 模式失败', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 设置优雅关闭
+   */
+  private setupGracefulShutdown(): void {
+    const shutdown = async (signal: string) => {
+      this.logger.info(`收到 ${signal} 信号，开始优雅关闭`);
+      
+      if (this.sseServerManager) {
+        await this.sseServerManager.close();
+      }
+      
+      this.logger.info('服务器已关闭');
+      process.exit(0);
+    };
+
+    process.on('SIGINT', () => shutdown('SIGINT'));
+    process.on('SIGTERM', () => shutdown('SIGTERM'));
     
-    await this.startStdioMode();
+    // Windows 支持
+    if (process.platform === 'win32') {
+      process.on('SIGBREAK', () => shutdown('SIGBREAK'));
+    }
   }
 }
 

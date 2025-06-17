@@ -117,8 +117,10 @@ GET /
 ### JavaScript 客户端示例
 
 ```javascript
-// 建立 SSE 连接
-const eventSource = new EventSource('http://localhost:3000/mcp');
+// 建立 SSE 连接（使用URL参数认证）
+const eventSource = new EventSource(
+  'http://localhost:3000/mcp?app_key=your_app_key&secret_key=your_secret_key'
+);
 
 // 监听连接确认
 eventSource.addEventListener('connected', (event) => {
@@ -136,12 +138,14 @@ eventSource.addEventListener('heartbeat', (event) => {
   console.log('心跳:', JSON.parse(event.data));
 });
 
-// 发送查询请求
+// 发送查询请求（使用HTTP头部认证）
 async function queryEnterprise(keyword) {
   const response = await fetch('http://localhost:3000/mcp', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'X-Qixin-App-Key': 'your_app_key',
+      'X-Qixin-Secret-Key': 'your_secret_key'
     },
     body: JSON.stringify({
       jsonrpc: '2.0',
@@ -169,9 +173,11 @@ queryEnterprise('腾讯科技').then(result => {
 # 健康检查
 curl http://localhost:3000/health
 
-# 发送查询请求
+# 发送查询请求（HTTP头部认证）
 curl -X POST http://localhost:3000/mcp \
   -H "Content-Type: application/json" \
+  -H "X-Qixin-App-Key: your_app_key" \
+  -H "X-Qixin-Secret-Key: your_secret_key" \
   -d '{
     "jsonrpc": "2.0",
     "id": 1,
@@ -184,8 +190,24 @@ curl -X POST http://localhost:3000/mcp \
     }
   }'
 
-# 监听 SSE 事件
-curl -N http://localhost:3000/mcp
+# 发送查询请求（Authorization头部认证）
+curl -X POST http://localhost:3000/mcp \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your_app_key:your_secret_key" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "tools/call",
+    "params": {
+      "name": "get_enterprise_basic_info",
+      "arguments": {
+        "keyword": "腾讯科技"
+      }
+    }
+  }'
+
+# 监听 SSE 事件（URL参数认证）
+curl -N "http://localhost:3000/mcp?app_key=your_app_key&secret_key=your_secret_key"
 ```
 
 ## 测试 SSE 功能

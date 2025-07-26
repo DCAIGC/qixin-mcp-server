@@ -9,7 +9,20 @@ import {
 import { config, Config } from './config/index';
 import { QixinApiClient } from './services/qixin-api';
 import { Logger } from './utils/logger';
-import { GetEnterpriseBasicInfoArgs, QixinApiError } from './types/index';
+import { 
+  GetEnterpriseBasicInfoArgs, 
+  SearchEnterpriseArgs,
+  GetEnterpriseContactArgs,
+  GetEnterpriseSizeArgs,
+  GetExecutedEnterpriseArgs,
+  GetDishonestEnterpriseArgs,
+  GetLegalDocumentsArgs,
+  GetEnterpriseGenealogy3Args,
+  GetAdminPenaltyArgs,
+  GetSeriousIllegalArgs,
+  GetGuaranteeListArgs,
+  QixinApiError 
+} from './types/index';
 import { SSEServerManager } from './server/sse-server';
 
 /**
@@ -72,6 +85,182 @@ class QixinMcpServer {
             required: ['keyword'],
           },
         },
+        {
+          name: 'search_enterprise',
+          description: '企业模糊搜索',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              keyword: {
+                type: 'string',
+                description: '企业相关关键字，输入字数大于等于2个',
+              },
+              matchType: {
+                type: 'string',
+                description: '匹配类型（可选）：partner（股东）、oper（法人）、member（高管）、contact（联系方式）、scope（经营范围）、ename（公司名称）、patent（专利）、copyright（著作权）、software（软件著作权）、trademark（商标）、domain（网址）、product（产品）',
+              },
+              region: {
+                type: 'string',
+                description: '地区编码（可选）：省/直辖市（2位）、城市（4位）、区县（6位）',
+              },
+              skip: {
+                type: 'number',
+                description: '跳过条目数（默认为0，单页返回10条数据）',
+              },
+            },
+            required: ['keyword'],
+          },
+        },
+        {
+          name: 'get_enterprise_contact',
+          description: '查询企业联系方式',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              keyword: {
+                type: 'string',
+                description: '企业全名/注册号/统一社会信用代码',
+              },
+            },
+            required: ['keyword'],
+          },
+        },
+        {
+          name: 'get_enterprise_size',
+          description: '查询企业规模',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              name: {
+                type: 'string',
+                description: '企业全名/注册号/统一社会信用代码',
+              },
+            },
+            required: ['name'],
+          },
+        },
+        {
+          name: 'get_executed_enterprise',
+          description: '查询被执行企业',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              keyword: {
+                type: 'string',
+                description: '企业全名/注册号/统一社会信用代码',
+              },
+              skip: {
+                type: 'number',
+                description: '跳过条目数（默认为0，单页返回10条数据）',
+              },
+            },
+            required: ['keyword'],
+          },
+        },
+        {
+          name: 'get_dishonest_enterprise',
+          description: '查询失信被执行企业',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              keyword: {
+                type: 'string',
+                description: '企业全名/注册号/统一社会信用代码',
+              },
+              skip: {
+                type: 'number',
+                description: '跳过条目数（默认为0，单页返回20条数据）',
+              },
+            },
+            required: ['keyword'],
+          },
+        },
+        {
+          name: 'get_legal_documents',
+          description: '查询裁判文书列表',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              keyword: {
+                type: 'string',
+                description: '企业名称',
+              },
+              matchType: {
+                type: 'string',
+                description: '匹配类型（可选）：litigant（当事人）、judge（法官）',
+              },
+              skip: {
+                type: 'number',
+                description: '跳过条目数（默认不填返回前20条）',
+              },
+            },
+            required: ['keyword'],
+          },
+        },
+        {
+          name: 'get_enterprise_genealogy3',
+          description: '查询企业三层族谱',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              eid: {
+                type: 'string',
+                description: '企业ID（使用工商照面接口返回的enterprises_id）',
+              },
+            },
+            required: ['eid'],
+          },
+        },
+        {
+          name: 'get_admin_penalty',
+          description: '查询行政处罚',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              keyword: {
+                type: 'string',
+                description: '企业名称',
+              },
+              skip: {
+                type: 'number',
+                description: '跳过条目数（默认为0，单页返回20条数据）',
+              },
+            },
+            required: ['keyword'],
+          },
+        },
+        {
+          name: 'get_serious_illegal',
+          description: '查询严重违法',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              name: {
+                type: 'string',
+                description: '企业全名/注册号/统一社会信用代码',
+              },
+            },
+            required: ['name'],
+          },
+        },
+        {
+          name: 'get_guarantee_list',
+          description: '查询对外担保',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              name: {
+                type: 'string',
+                description: '企业全名/注册号/统一社会信用代码',
+              },
+              skip: {
+                type: 'number',
+                description: '跳过条目数（默认不填返回前20条）',
+              },
+            },
+            required: ['name'],
+          },
+        },
       ],
     }));
 
@@ -85,6 +274,86 @@ class QixinMcpServer {
           throw new Error('Invalid arguments for get_enterprise_basic_info');
         }
         return await this.handleGetEnterpriseBasicInfo(args as unknown as GetEnterpriseBasicInfoArgs);
+      }
+
+      if (name === 'search_enterprise') {
+        // 验证参数结构
+        if (!args || typeof args !== 'object' || !('keyword' in args)) {
+          throw new Error('Invalid arguments for search_enterprise');
+        }
+        return await this.handleSearchEnterprise(args as unknown as SearchEnterpriseArgs);
+      }
+
+      if (name === 'get_enterprise_contact') {
+        // 验证参数结构
+        if (!args || typeof args !== 'object' || !('keyword' in args)) {
+          throw new Error('Invalid arguments for get_enterprise_contact');
+        }
+        return await this.handleGetEnterpriseContact(args as unknown as GetEnterpriseContactArgs);
+      }
+
+      if (name === 'get_enterprise_size') {
+        // 验证参数结构
+        if (!args || typeof args !== 'object' || !('name' in args)) {
+          throw new Error('Invalid arguments for get_enterprise_size');
+        }
+        return await this.handleGetEnterpriseSize(args as unknown as GetEnterpriseSizeArgs);
+      }
+
+      if (name === 'get_executed_enterprise') {
+        // 验证参数结构
+        if (!args || typeof args !== 'object' || !('keyword' in args)) {
+          throw new Error('Invalid arguments for get_executed_enterprise');
+        }
+        return await this.handleGetExecutedEnterprise(args as unknown as GetExecutedEnterpriseArgs);
+      }
+
+      if (name === 'get_dishonest_enterprise') {
+        // 验证参数结构
+        if (!args || typeof args !== 'object' || !('keyword' in args)) {
+          throw new Error('Invalid arguments for get_dishonest_enterprise');
+        }
+        return await this.handleGetDishonestEnterprise(args as unknown as GetDishonestEnterpriseArgs);
+      }
+
+      if (name === 'get_legal_documents') {
+        // 验证参数结构
+        if (!args || typeof args !== 'object' || !('keyword' in args)) {
+          throw new Error('Invalid arguments for get_legal_documents');
+        }
+        return await this.handleGetLegalDocuments(args as unknown as GetLegalDocumentsArgs);
+      }
+
+      if (name === 'get_enterprise_genealogy3') {
+        // 验证参数结构
+        if (!args || typeof args !== 'object' || !('eid' in args)) {
+          throw new Error('Invalid arguments for get_enterprise_genealogy3');
+        }
+        return await this.handleGetEnterpriseGenealogy3(args as unknown as GetEnterpriseGenealogy3Args);
+      }
+
+      if (name === 'get_admin_penalty') {
+        // 验证参数结构
+        if (!args || typeof args !== 'object' || !('keyword' in args)) {
+          throw new Error('Invalid arguments for get_admin_penalty');
+        }
+        return await this.handleGetAdminPenalty(args as unknown as GetAdminPenaltyArgs);
+      }
+
+      if (name === 'get_serious_illegal') {
+        // 验证参数结构
+        if (!args || typeof args !== 'object' || !('name' in args)) {
+          throw new Error('Invalid arguments for get_serious_illegal');
+        }
+        return await this.handleGetSeriousIllegal(args as unknown as GetSeriousIllegalArgs);
+      }
+
+      if (name === 'get_guarantee_list') {
+        // 验证参数结构
+        if (!args || typeof args !== 'object' || !('name' in args)) {
+          throw new Error('Invalid arguments for get_guarantee_list');
+        }
+        return await this.handleGetGuaranteeList(args as unknown as GetGuaranteeListArgs);
       }
 
       throw new Error(`Unknown tool: ${name}`);
@@ -109,6 +378,618 @@ class QixinMcpServer {
       this.logger.info('查询成功', { 
         keyword: args.keyword, 
         enterprise: result.name 
+      });
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(result, null, 2),
+          },
+        ],
+      };
+    } catch (error) {
+      this.logger.error('查询失败', error);
+
+      let errorMessage: string;
+      let errorCode: string | undefined;
+
+      if (error instanceof QixinApiError) {
+        errorMessage = error.message;
+        errorCode = error.code;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      } else {
+        errorMessage = '未知错误';
+      }
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              error: true,
+              message: errorMessage,
+              code: errorCode,
+            }, null, 2),
+          },
+        ],
+        isError: true,
+      };
+    }
+  }
+
+  /**
+   * 处理企业搜索
+   */
+  private async handleSearchEnterprise(args: SearchEnterpriseArgs) {
+    this.logger.info('企业模糊搜索', { 
+      keyword: args.keyword,
+      matchType: args.matchType,
+      region: args.region,
+      skip: args.skip
+    });
+
+    try {
+      // 参数验证
+      if (!args.keyword || typeof args.keyword !== 'string') {
+        throw new Error('keyword 参数必须是非空字符串');
+      }
+
+      // 调用 API
+      const result = await this.apiClient.searchEnterprise(
+        args.keyword,
+        args.matchType,
+        args.region,
+        args.skip
+      );
+
+      this.logger.info('搜索成功', { 
+        keyword: args.keyword, 
+        total: result.total,
+        num: result.num
+      });
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(result, null, 2),
+          },
+        ],
+      };
+    } catch (error) {
+      this.logger.error('搜索失败', error);
+
+      let errorMessage: string;
+      let errorCode: string | undefined;
+
+      if (error instanceof QixinApiError) {
+        errorMessage = error.message;
+        errorCode = error.code;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      } else {
+        errorMessage = '未知错误';
+      }
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              error: true,
+              message: errorMessage,
+              code: errorCode,
+            }, null, 2),
+          },
+        ],
+        isError: true,
+      };
+    }
+  }
+
+  /**
+   * 处理企业联系方式查询
+   */
+  private async handleGetEnterpriseContact(args: GetEnterpriseContactArgs) {
+    this.logger.info('查询企业联系方式', { keyword: args.keyword });
+
+    try {
+      // 参数验证
+      if (!args.keyword || typeof args.keyword !== 'string') {
+        throw new Error('keyword 参数必须是非空字符串');
+      }
+
+      // 调用 API
+      const result = await this.apiClient.getContactInfo(args.keyword);
+
+      this.logger.info('查询成功', { 
+        keyword: args.keyword, 
+        enterprise: result.name 
+      });
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(result, null, 2),
+          },
+        ],
+      };
+    } catch (error) {
+      this.logger.error('查询失败', error);
+
+      let errorMessage: string;
+      let errorCode: string | undefined;
+
+      if (error instanceof QixinApiError) {
+        errorMessage = error.message;
+        errorCode = error.code;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      } else {
+        errorMessage = '未知错误';
+      }
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              error: true,
+              message: errorMessage,
+              code: errorCode,
+            }, null, 2),
+          },
+        ],
+        isError: true,
+      };
+    }
+  }
+
+  /**
+   * 处理企业规模查询
+   */
+  private async handleGetEnterpriseSize(args: GetEnterpriseSizeArgs) {
+    this.logger.info('查询企业规模', { name: args.name });
+
+    try {
+      // 参数验证
+      if (!args.name || typeof args.name !== 'string') {
+        throw new Error('name 参数必须是非空字符串');
+      }
+
+      // 调用 API
+      const result = await this.apiClient.getEntSize(args.name);
+
+      this.logger.info('查询成功', { 
+        name: args.name, 
+        size: result.tag_name 
+      });
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(result, null, 2),
+          },
+        ],
+      };
+    } catch (error) {
+      this.logger.error('查询失败', error);
+
+      let errorMessage: string;
+      let errorCode: string | undefined;
+
+      if (error instanceof QixinApiError) {
+        errorMessage = error.message;
+        errorCode = error.code;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      } else {
+        errorMessage = '未知错误';
+      }
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              error: true,
+              message: errorMessage,
+              code: errorCode,
+            }, null, 2),
+          },
+        ],
+        isError: true,
+      };
+    }
+  }
+
+  /**
+   * 处理被执行企业查询
+   */
+  private async handleGetExecutedEnterprise(args: GetExecutedEnterpriseArgs) {
+    this.logger.info('查询被执行企业', { keyword: args.keyword, skip: args.skip });
+
+    try {
+      // 参数验证
+      if (!args.keyword || typeof args.keyword !== 'string') {
+        throw new Error('keyword 参数必须是非空字符串');
+      }
+
+      // 调用 API
+      const result = await this.apiClient.getExecutedEnterprise(args.keyword, args.skip);
+
+      this.logger.info('查询成功', { 
+        keyword: args.keyword, 
+        total: result.total,
+        count: result.items?.length || 0
+      });
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(result, null, 2),
+          },
+        ],
+      };
+    } catch (error) {
+      this.logger.error('查询失败', error);
+
+      let errorMessage: string;
+      let errorCode: string | undefined;
+
+      if (error instanceof QixinApiError) {
+        errorMessage = error.message;
+        errorCode = error.code;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      } else {
+        errorMessage = '未知错误';
+      }
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              error: true,
+              message: errorMessage,
+              code: errorCode,
+            }, null, 2),
+          },
+        ],
+        isError: true,
+      };
+    }
+  }
+
+  /**
+   * 处理失信被执行企业查询
+   */
+  private async handleGetDishonestEnterprise(args: GetDishonestEnterpriseArgs) {
+    this.logger.info('查询失信被执行企业', { keyword: args.keyword, skip: args.skip });
+
+    try {
+      // 参数验证
+      if (!args.keyword || typeof args.keyword !== 'string') {
+        throw new Error('keyword 参数必须是非空字符串');
+      }
+
+      // 调用 API
+      const result = await this.apiClient.getDishonestEnterprise(args.keyword, args.skip);
+
+      this.logger.info('查询成功', { 
+        keyword: args.keyword, 
+        total: result.total,
+        count: result.items?.length || 0
+      });
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(result, null, 2),
+          },
+        ],
+      };
+    } catch (error) {
+      this.logger.error('查询失败', error);
+
+      let errorMessage: string;
+      let errorCode: string | undefined;
+
+      if (error instanceof QixinApiError) {
+        errorMessage = error.message;
+        errorCode = error.code;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      } else {
+        errorMessage = '未知错误';
+      }
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              error: true,
+              message: errorMessage,
+              code: errorCode,
+            }, null, 2),
+          },
+        ],
+        isError: true,
+      };
+    }
+  }
+
+  /**
+   * 处理裁判文书列表查询
+   */
+  private async handleGetLegalDocuments(args: GetLegalDocumentsArgs) {
+    this.logger.info('查询裁判文书列表', { 
+      keyword: args.keyword, 
+      matchType: args.matchType,
+      skip: args.skip 
+    });
+
+    try {
+      // 参数验证
+      if (!args.keyword || typeof args.keyword !== 'string') {
+        throw new Error('keyword 参数必须是非空字符串');
+      }
+
+      // 调用 API
+      const result = await this.apiClient.getLegalDocuments(args.keyword, args.matchType, args.skip);
+
+      this.logger.info('查询成功', { 
+        keyword: args.keyword, 
+        total: result.total,
+        num: result.num
+      });
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(result, null, 2),
+          },
+        ],
+      };
+    } catch (error) {
+      this.logger.error('查询失败', error);
+
+      let errorMessage: string;
+      let errorCode: string | undefined;
+
+      if (error instanceof QixinApiError) {
+        errorMessage = error.message;
+        errorCode = error.code;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      } else {
+        errorMessage = '未知错误';
+      }
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              error: true,
+              message: errorMessage,
+              code: errorCode,
+            }, null, 2),
+          },
+        ],
+        isError: true,
+      };
+    }
+  }
+
+  /**
+   * 处理企业三层族谱查询
+   */
+  private async handleGetEnterpriseGenealogy3(args: GetEnterpriseGenealogy3Args) {
+    this.logger.info('查询企业三层族谱', { eid: args.eid });
+
+    try {
+      // 参数验证
+      if (!args.eid || typeof args.eid !== 'string') {
+        throw new Error('eid 参数必须是非空字符串');
+      }
+
+      // 调用 API
+      const result = await this.apiClient.getEnterpriseGenealogy3(args.eid);
+
+      this.logger.info('查询成功', { 
+        eid: args.eid, 
+        node_num: result.node_num,
+        share_holders_count: result.share_holders?.length || 0,
+        invests_count: result.invests?.length || 0
+      });
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(result, null, 2),
+          },
+        ],
+      };
+    } catch (error) {
+      this.logger.error('查询失败', error);
+
+      let errorMessage: string;
+      let errorCode: string | undefined;
+
+      if (error instanceof QixinApiError) {
+        errorMessage = error.message;
+        errorCode = error.code;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      } else {
+        errorMessage = '未知错误';
+      }
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              error: true,
+              message: errorMessage,
+              code: errorCode,
+            }, null, 2),
+          },
+        ],
+        isError: true,
+      };
+    }
+  }
+
+  /**
+   * 处理行政处罚查询
+   */
+  private async handleGetAdminPenalty(args: GetAdminPenaltyArgs) {
+    this.logger.info('查询行政处罚', { keyword: args.keyword, skip: args.skip });
+
+    try {
+      // 参数验证
+      if (!args.keyword || typeof args.keyword !== 'string') {
+        throw new Error('keyword 参数必须是非空字符串');
+      }
+
+      // 调用 API
+      const result = await this.apiClient.getAdminPenalty(args.keyword, args.skip);
+
+      this.logger.info('查询成功', { 
+        keyword: args.keyword, 
+        total: result.total,
+        count: result.items?.length || 0
+      });
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(result, null, 2),
+          },
+        ],
+      };
+    } catch (error) {
+      this.logger.error('查询失败', error);
+
+      let errorMessage: string;
+      let errorCode: string | undefined;
+
+      if (error instanceof QixinApiError) {
+        errorMessage = error.message;
+        errorCode = error.code;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      } else {
+        errorMessage = '未知错误';
+      }
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              error: true,
+              message: errorMessage,
+              code: errorCode,
+            }, null, 2),
+          },
+        ],
+        isError: true,
+      };
+    }
+  }
+
+  /**
+   * 处理严重违法查询
+   */
+  private async handleGetSeriousIllegal(args: GetSeriousIllegalArgs) {
+    this.logger.info('查询严重违法', { name: args.name });
+
+    try {
+      // 参数验证
+      if (!args.name || typeof args.name !== 'string') {
+        throw new Error('name 参数必须是非空字符串');
+      }
+
+      // 调用 API
+      const result = await this.apiClient.getSeriousIllegal(args.name);
+
+      this.logger.info('查询成功', { 
+        name: args.name, 
+        execution_count: result.execution?.length || 0
+      });
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(result, null, 2),
+          },
+        ],
+      };
+    } catch (error) {
+      this.logger.error('查询失败', error);
+
+      let errorMessage: string;
+      let errorCode: string | undefined;
+
+      if (error instanceof QixinApiError) {
+        errorMessage = error.message;
+        errorCode = error.code;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      } else {
+        errorMessage = '未知错误';
+      }
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              error: true,
+              message: errorMessage,
+              code: errorCode,
+            }, null, 2),
+          },
+        ],
+        isError: true,
+      };
+    }
+  }
+
+  /**
+   * 处理对外担保查询
+   */
+  private async handleGetGuaranteeList(args: GetGuaranteeListArgs) {
+    this.logger.info('查询对外担保', { name: args.name, skip: args.skip });
+
+    try {
+      // 参数验证
+      if (!args.name || typeof args.name !== 'string') {
+        throw new Error('name 参数必须是非空字符串');
+      }
+
+      // 调用 API
+      const result = await this.apiClient.getGuaranteeList(args.name, args.skip);
+
+      this.logger.info('查询成功', { 
+        name: args.name, 
+        total: result.total,
+        count: result.items?.length || 0
       });
 
       return {

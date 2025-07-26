@@ -1,5 +1,19 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
-import { EnterpriseBasicInfo, QixinApiResponse, QixinApiError } from '../types';
+import { 
+  EnterpriseBasicInfo, 
+  EnterpriseSearchResult,
+  EnterpriseContactInfo,
+  EnterpriseSizeInfo,
+  ExecutedEnterpriseResult,
+  DishonestEnterpriseResult,
+  LegalDocumentsResult,
+  EnterpriseGenealogy3Result,
+  AdminPenaltyResult,
+  SeriousIllegalResult,
+  GuaranteeListResult,
+  QixinApiResponse, 
+  QixinApiError 
+} from '../types';
 import { SignatureService } from './signature';
 import { Logger } from '../utils/logger';
 
@@ -224,5 +238,415 @@ export class QixinApiClient {
       error instanceof Error ? error.message : '未知错误',
       'UNKNOWN_ERROR'
     );
+  }
+
+  /**
+   * 企业模糊搜索
+   * @param keyword 查询关键词
+   * @param matchType 匹配类型
+   * @param region 地区编码
+   * @param skip 跳过条目数
+   * @returns 企业搜索结果
+   */
+  public async searchEnterprise(
+    keyword: string, 
+    matchType?: string, 
+    region?: string, 
+    skip?: number
+  ): Promise<EnterpriseSearchResult> {
+    if (!keyword || keyword.trim().length < 2) {
+      throw new QixinApiError('查询关键词至少需要2个字符');
+    }
+
+    // 不允许仅输入公司和有限公司
+    const trimmedKeyword = keyword.trim();
+    if (trimmedKeyword === '公司' || trimmedKeyword === '有限公司') {
+      throw new QixinApiError('不允许仅输入"公司"或"有限公司"');
+    }
+
+    const endpoint = '/v2/search/advSearch';
+    const params: any = { keyword: trimmedKeyword };
+    
+    if (matchType) params.matchType = matchType;
+    if (region) params.region = region;
+    if (skip !== undefined) params.skip = skip;
+
+    try {
+      const data = await this.requestWithRetry<QixinApiResponse<EnterpriseSearchResult>>(
+        'GET',
+        endpoint,
+        params
+      );
+
+      if (data.status !== '200') {
+        throw new QixinApiError(
+          data.message || '查询失败',
+          data.error_code,
+          parseInt(data.status)
+        );
+      }
+
+      if (!data.data) {
+        throw new QixinApiError('未找到相关企业信息', 'NO_DATA');
+      }
+
+      return data.data;
+    } catch (error) {
+      this.handleApiError(error);
+    }
+  }
+
+  /**
+   * 查询企业联系方式
+   * @param keyword 企业全名/注册号/统一社会信用代码
+   * @returns 企业联系方式信息
+   */
+  public async getContactInfo(keyword: string): Promise<EnterpriseContactInfo> {
+    if (!keyword || keyword.trim().length === 0) {
+      throw new QixinApiError('查询关键词不能为空');
+    }
+
+    const endpoint = '/enterprise/getContactInfo';
+    const params = { keyword: keyword.trim() };
+
+    try {
+      const data = await this.requestWithRetry<QixinApiResponse<EnterpriseContactInfo>>(
+        'GET',
+        endpoint,
+        params
+      );
+
+      if (data.status !== '200') {
+        throw new QixinApiError(
+          data.message || '查询失败',
+          data.error_code,
+          parseInt(data.status)
+        );
+      }
+
+      if (!data.data) {
+        throw new QixinApiError('未找到企业联系方式信息', 'NO_DATA');
+      }
+
+      return data.data;
+    } catch (error) {
+      this.handleApiError(error);
+    }
+  }
+
+  /**
+   * 查询企业规模
+   * @param name 企业全名/注册号/统一社会信用代码
+   * @returns 企业规模信息
+   */
+  public async getEntSize(name: string): Promise<EnterpriseSizeInfo> {
+    if (!name || name.trim().length === 0) {
+      throw new QixinApiError('企业名称不能为空');
+    }
+
+    const endpoint = '/enterprise/getEntSize';
+    const params = { name: name.trim() };
+
+    try {
+      const data = await this.requestWithRetry<QixinApiResponse<EnterpriseSizeInfo>>(
+        'GET',
+        endpoint,
+        params
+      );
+
+      if (data.status !== '200') {
+        throw new QixinApiError(
+          data.message || '查询失败',
+          data.error_code,
+          parseInt(data.status)
+        );
+      }
+
+      if (!data.data) {
+        throw new QixinApiError('未找到企业规模信息', 'NO_DATA');
+      }
+
+      return data.data;
+    } catch (error) {
+      this.handleApiError(error);
+    }
+  }
+
+  /**
+   * 查询被执行企业
+   * @param keyword 企业全名/注册号/统一社会信用代码
+   * @param skip 跳过条目数
+   * @returns 被执行企业信息
+   */
+  public async getExecutedEnterprise(keyword: string, skip?: number): Promise<ExecutedEnterpriseResult> {
+    if (!keyword || keyword.trim().length === 0) {
+      throw new QixinApiError('查询关键词不能为空');
+    }
+
+    const endpoint = '/execution/getExecutedpersonListByName';
+    const params: any = { name: keyword.trim() };
+    if (skip !== undefined) params.skip = skip;
+
+    try {
+      const data = await this.requestWithRetry<QixinApiResponse<ExecutedEnterpriseResult>>(
+        'GET',
+        endpoint,
+        params
+      );
+
+      if (data.status !== '200') {
+        throw new QixinApiError(
+          data.message || '查询失败',
+          data.error_code,
+          parseInt(data.status)
+        );
+      }
+
+      if (!data.data) {
+        throw new QixinApiError('未找到被执行企业信息', 'NO_DATA');
+      }
+
+      return data.data;
+    } catch (error) {
+      this.handleApiError(error);
+    }
+  }
+
+  /**
+   * 查询失信被执行企业
+   * @param keyword 企业全名/注册号/统一社会信用代码
+   * @param skip 跳过条目数
+   * @returns 失信被执行企业信息
+   */
+  public async getDishonestEnterprise(keyword: string, skip?: number): Promise<DishonestEnterpriseResult> {
+    if (!keyword || keyword.trim().length === 0) {
+      throw new QixinApiError('查询关键词不能为空');
+    }
+
+    const endpoint = '/execution/getExecutionListByName';
+    const params: any = { keyword: keyword.trim() };
+    if (skip !== undefined) params.skip = skip;
+
+    try {
+      const data = await this.requestWithRetry<QixinApiResponse<DishonestEnterpriseResult>>(
+        'GET',
+        endpoint,
+        params
+      );
+
+      if (data.status !== '200') {
+        throw new QixinApiError(
+          data.message || '查询失败',
+          data.error_code,
+          parseInt(data.status)
+        );
+      }
+
+      if (!data.data) {
+        throw new QixinApiError('未找到失信被执行企业信息', 'NO_DATA');
+      }
+
+      return data.data;
+    } catch (error) {
+      this.handleApiError(error);
+    }
+  }
+
+  /**
+   * 查询裁判文书列表
+   * @param keyword 企业名称
+   * @param matchType 匹配类型
+   * @param skip 跳过条目数
+   * @returns 裁判文书列表
+   */
+  public async getLegalDocuments(keyword: string, matchType?: 'litigant' | 'judge', skip?: number): Promise<LegalDocumentsResult> {
+    if (!keyword || keyword.trim().length === 0) {
+      throw new QixinApiError('查询关键词不能为空');
+    }
+
+    const endpoint = '/lawsuit/getLawsuitListByName';
+    const params: any = { name: keyword.trim() };
+    if (matchType) params.matchType = matchType;
+    if (skip !== undefined) params.skip = skip;
+
+    try {
+      const data = await this.requestWithRetry<QixinApiResponse<LegalDocumentsResult>>(
+        'GET',
+        endpoint,
+        params
+      );
+
+      if (data.status !== '200') {
+        throw new QixinApiError(
+          data.message || '查询失败',
+          data.error_code,
+          parseInt(data.status)
+        );
+      }
+
+      if (!data.data) {
+        throw new QixinApiError('未找到裁判文书信息', 'NO_DATA');
+      }
+
+      return data.data;
+    } catch (error) {
+      this.handleApiError(error);
+    }
+  }
+
+  /**
+   * 查询企业三层族谱
+   * @param eid 企业ID
+   * @returns 企业三层族谱信息
+   */
+  public async getEnterpriseGenealogy3(eid: string): Promise<EnterpriseGenealogy3Result> {
+    if (!eid || eid.trim().length === 0) {
+      throw new QixinApiError('企业ID不能为空');
+    }
+
+    const endpoint = '/relation/getRelationInfoByName';
+    const params = { name: eid.trim() };
+
+    try {
+      const data = await this.requestWithRetry<QixinApiResponse<EnterpriseGenealogy3Result>>(
+        'GET',
+        endpoint,
+        params
+      );
+
+      if (data.status !== '200') {
+        throw new QixinApiError(
+          data.message || '查询失败',
+          data.error_code,
+          parseInt(data.status)
+        );
+      }
+
+      if (!data.data) {
+        throw new QixinApiError('未找到企业族谱信息', 'NO_DATA');
+      }
+
+      return data.data;
+    } catch (error) {
+      this.handleApiError(error);
+    }
+  }
+
+  /**
+   * 查询行政处罚
+   * @param keyword 企业名称
+   * @param skip 跳过条目数
+   * @returns 行政处罚信息
+   */
+  public async getAdminPenalty(keyword: string, skip?: number): Promise<AdminPenaltyResult> {
+    if (!keyword || keyword.trim().length === 0) {
+      throw new QixinApiError('查询关键词不能为空');
+    }
+
+    const endpoint = '/v2/adminPunish/getAdminPunishByName';
+    const params: any = { keyword: keyword.trim() };
+    if (skip !== undefined) params.skip = skip;
+
+    try {
+      const data = await this.requestWithRetry<QixinApiResponse<AdminPenaltyResult>>(
+        'GET',
+        endpoint,
+        params
+      );
+
+      if (data.status !== '200') {
+        throw new QixinApiError(
+          data.message || '查询失败',
+          data.error_code,
+          parseInt(data.status)
+        );
+      }
+
+      if (!data.data) {
+        throw new QixinApiError('未找到行政处罚信息', 'NO_DATA');
+      }
+
+      return data.data;
+    } catch (error) {
+      this.handleApiError(error);
+    }
+  }
+
+  /**
+   * 查询严重违法
+   * @param name 企业全名/注册号/统一社会信用代码
+   * @returns 严重违法信息
+   */
+  public async getSeriousIllegal(name: string): Promise<SeriousIllegalResult> {
+    if (!name || name.trim().length === 0) {
+      throw new QixinApiError('企业名称不能为空');
+    }
+
+    const endpoint = '/enterprise/getSeriousIllegalByName';
+    const params = { name: name.trim() };
+
+    try {
+      const data = await this.requestWithRetry<QixinApiResponse<SeriousIllegalResult>>(
+        'GET',
+        endpoint,
+        params
+      );
+
+      if (data.status !== '200') {
+        throw new QixinApiError(
+          data.message || '查询失败',
+          data.error_code,
+          parseInt(data.status)
+        );
+      }
+
+      if (!data.data) {
+        throw new QixinApiError('未找到严重违法信息', 'NO_DATA');
+      }
+
+      return data.data;
+    } catch (error) {
+      this.handleApiError(error);
+    }
+  }
+
+  /**
+   * 查询对外担保
+   * @param name 企业全名/注册号/统一社会信用代码
+   * @param skip 跳过条目数
+   * @returns 对外担保信息
+   */
+  public async getGuaranteeList(name: string, skip?: number): Promise<GuaranteeListResult> {
+    if (!name || name.trim().length === 0) {
+      throw new QixinApiError('企业名称不能为空');
+    }
+
+    const endpoint = '/qc/getGuaranteeList';
+    const params: any = { name: name.trim() };
+    if (skip !== undefined) params.skip = skip;
+
+    try {
+      const data = await this.requestWithRetry<QixinApiResponse<GuaranteeListResult>>(
+        'GET',
+        endpoint,
+        params
+      );
+
+      if (data.status !== '200') {
+        throw new QixinApiError(
+          data.message || '查询失败',
+          data.error_code,
+          parseInt(data.status)
+        );
+      }
+
+      if (!data.data) {
+        throw new QixinApiError('未找到对外担保信息', 'NO_DATA');
+      }
+
+      return data.data;
+    } catch (error) {
+      this.handleApiError(error);
+    }
   }
 } 

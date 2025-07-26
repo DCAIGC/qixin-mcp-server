@@ -1,14 +1,17 @@
-# 启信宝工商照面信息查询 MCP Server
+# 启信宝 MCP Server
 
-基于 Model Context Protocol (MCP) 的企业工商信息查询服务，为 AI 助手提供实时的企业基本信息查询能力。
+基于 Model Context Protocol (MCP) 的企业信息查询服务，为 AI 助手提供全面的企业工商信息查询能力。
 
 ## 功能特性
 
-- 🔍 企业基本信息查询：支持通过企业名称、统一社会信用代码等关键词查询
-- 🔐 安全的 API 认证：使用 MD5 签名算法保证 API 调用安全
-- ⚡ 高性能设计：支持请求重试、错误处理和日志记录
-- 🛠️ 多种运行模式：支持 stdio 和 SSE 两种运行方式
-- 📦 TypeScript 开发：提供完整的类型定义和代码提示
+- 🔍 **企业基本信息查询**：工商照面、联系方式、企业规模等
+- 📊 **风险信息查询**：被执行、失信被执行、行政处罚、严重违法等
+- 📑 **法律文书查询**：裁判文书列表、诉讼信息
+- 🌐 **关系图谱查询**：企业三层族谱、对外担保信息
+- 🔐 **安全认证**：使用 MD5 签名算法保证 API 调用安全
+- ⚡ **高性能设计**：支持请求重试、错误处理和日志记录
+- 🛠️ **多种运行模式**：支持 stdio 和 SSE 两种运行方式
+- 📦 **TypeScript 开发**：提供完整的类型定义和代码提示
 
 ## 快速开始
 
@@ -103,23 +106,111 @@ SSE 模式提供以下端点：
 
 ### 可用工具
 
-#### `get_enterprise_basic_info`
+#### 1. `get_enterprise_basic_info` - 企业基本信息查询
 
-查询企业基本信息。
+查询企业的工商照面信息。
 
 **参数：**
 - `keyword` (string, 必需): 查询关键词（企业名称、统一社会信用代码等）
 
-**返回数据：**
-- `name`: 企业名称
-- `creditCode`: 统一社会信用代码
-- `legalPerson`: 法定代表人
-- `registeredCapital`: 注册资本
-- `establishDate`: 成立日期
-- `businessStatus`: 经营状态
-- `businessScope`: 经营范围
-- `registeredAddress`: 注册地址
-- 其他工商照面信息
+**返回数据示例：**
+```json
+{
+  "name": "小米科技有限责任公司",
+  "creditCode": "91110108551385082Q",
+  "legalPerson": "雷军",
+  "registeredCapital": "185000万元人民币",
+  "establishDate": "2010-03-03",
+  "businessStatus": "开业",
+  "businessScope": "技术开发；技术转让...",
+  "registeredAddress": "北京市海淀区...",
+  "enterprises_id": "xxxx"  // 用于族谱查询
+}
+```
+
+#### 2. `search_enterprise` - 企业模糊搜索
+
+根据关键词进行企业模糊搜索。
+
+**参数：**
+- `keyword` (string, 必需): 企业相关关键字（≥2个字符）
+- `matchType` (string, 可选): 匹配类型
+  - `partner`: 股东
+  - `oper`: 法人
+  - `member`: 高管
+  - `scope`: 经营范围
+  - 等等
+- `region` (string, 可选): 地区编码
+- `skip` (number, 可选): 跳过条目数，默认0
+
+#### 3. `get_enterprise_contact` - 企业联系方式
+
+查询企业的联系方式信息。
+
+**参数：**
+- `keyword` (string, 必需): 企业全名/注册号/统一社会信用代码
+
+#### 4. `get_enterprise_size` - 企业规模
+
+查询企业规模分类（微型、小型、中型、大型）。
+
+**参数：**
+- `name` (string, 必需): 企业全名/注册号/统一社会信用代码
+
+#### 5. `get_executed_enterprise` - 被执行企业
+
+查询企业的被执行案件信息。
+
+**参数：**
+- `keyword` (string, 必需): 企业全名/注册号/统一社会信用代码
+- `skip` (number, 可选): 跳过条目数，默认0
+
+#### 6. `get_dishonest_enterprise` - 失信被执行企业
+
+查询企业的失信被执行信息。
+
+**参数：**
+- `keyword` (string, 必需): 企业全名/注册号/统一社会信用代码
+- `skip` (number, 可选): 跳过条目数，默认0
+
+#### 7. `get_legal_documents` - 裁判文书列表
+
+查询企业相关的法律文书。
+
+**参数：**
+- `keyword` (string, 必需): 企业名称
+- `matchType` (string, 可选): `litigant`（当事人）或 `judge`（法官）
+- `skip` (number, 可选): 跳过条目数，默认0
+
+#### 8. `get_enterprise_genealogy3` - 企业三层族谱
+
+查询企业的股权关系图谱（向上3层股东，向下3层投资）。
+
+**参数：**
+- `eid` (string, 必需): 企业ID（使用基本信息接口返回的 enterprises_id）
+
+#### 9. `get_admin_penalty` - 行政处罚
+
+查询企业的行政处罚记录。
+
+**参数：**
+- `keyword` (string, 必需): 企业名称
+- `skip` (number, 可选): 跳过条目数，默认0
+
+#### 10. `get_serious_illegal` - 严重违法
+
+查询企业的严重违法记录。
+
+**参数：**
+- `name` (string, 必需): 企业全名/注册号/统一社会信用代码
+
+#### 11. `get_guarantee_list` - 对外担保
+
+查询企业的对外担保信息。
+
+**参数：**
+- `name` (string, 必需): 企业全名/注册号/统一社会信用代码
+- `skip` (number, 可选): 跳过条目数，默认0
 
 ## 环境变量
 

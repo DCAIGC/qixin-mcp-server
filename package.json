@@ -1,7 +1,7 @@
 {
   "name": "qixin-mcp-server",
   "version": "1.0.0",
-  "description": "启信宝工商照面信息查询 MCP Server",
+  "description": "启信宝 MCP Server",
   "main": "dist/server.js",
   "types": "dist/server.d.ts",
   "bin": {

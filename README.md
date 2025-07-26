@@ -13,79 +13,15 @@
 - 🛠️ **多种运行模式**：支持 stdio 和 SSE 两种运行方式
 - 📦 **TypeScript 开发**：提供完整的类型定义和代码提示
 
-## 快速开始
+## 前置要求
 
-### 1. 安装
+在使用前，您需要先获取启信宝 API 密钥：
+- `QIXIN_APP_KEY`：启信宝 API Key
+- `QIXIN_SECRET_KEY`：启信宝 Secret Key
 
-```bash
-# 克隆项目
-git clone <repository-url>
-cd qixin-mcp-server
+## MCP 配置方式
 
-# 安装依赖
-npm install
-
-# 构建项目
-npm run build
-```
-
-### 2. 配置
-
-复制环境变量示例文件并配置您的 API 密钥：
-
-```bash
-cp env.example .env
-```
-
-编辑 `.env` 文件，填入您的启信宝 API 密钥：
-
-```env
-QIXIN_APP_KEY=your_app_key_here
-QIXIN_SECRET_KEY=your_secret_key_here
-```
-
-### 3. 运行
-
-#### NPX 方式（推荐）
-
-```bash
-npx qixin-mcp-server
-```
-
-#### 直接运行
-
-```bash
-# 开发模式
-npm run dev
-
-# 生产模式
-npm start
-```
-
-#### SSE 模式
-
-```bash
-# 通过命令行参数
-npx qixin-mcp-server --sse
-
-# 或通过环境变量
-MCP_SSE=true npx qixin-mcp-server
-
-# 使用自定义端口
-PORT=8080 MCP_SSE=true npx qixin-mcp-server
-```
-
-SSE 模式提供以下端点：
-- `GET /mcp` - Server-Sent Events 连接
-- `POST /mcp` - 发送 JSON-RPC 消息
-- `GET /health` - 健康检查
-- `GET /` - 服务器信息
-
-详细使用方法请参考 [SSE 使用指南](docs/sse-usage.md)。
-
-## 使用方法
-
-### 在 AI 客户端中配置
+### 1. 标准 stdio 模式
 
 在支持 MCP 协议的 AI 客户端（如 Claude Desktop）中添加以下配置：
 
@@ -103,6 +39,51 @@ SSE 模式提供以下端点：
   }
 }
 ```
+
+### 2. SSE 模式
+
+SSE (Server-Sent Events) 模式提供 HTTP 端点用于 MCP 通信：
+
+```bash
+# 启动 SSE 服务器
+MCP_SSE=true QIXIN_APP_KEY=your_app_key QIXIN_SECRET_KEY=your_secret_key npx qixin-mcp-server
+
+# 或使用命令行参数
+npx qixin-mcp-server --sse
+
+# 自定义端口（默认 3000）
+PORT=8080 MCP_SSE=true npx qixin-mcp-server
+```
+
+SSE 模式提供以下端点：
+- `GET /mcp` - Server-Sent Events 连接
+- `POST /mcp` - 发送 JSON-RPC 消息
+- `GET /health` - 健康检查
+- `GET /` - 服务器信息
+
+### 3. Docker 部署（SSE 模式）
+
+使用 Docker Compose 部署：
+
+```bash
+# 1. 进入 docker 目录
+cd docker
+
+# 2. 复制并编辑环境变量文件
+cp .env.example .env
+# 编辑 .env 文件，填入您的 API 密钥
+
+# 3. 启动服务
+docker-compose up -d
+
+# 4. 查看日志
+docker-compose logs -f
+
+# 5. 停止服务
+docker-compose down
+```
+
+Docker 服务默认运行在 3000 端口，可通过环境变量配置修改。
 
 ### 可用工具
 

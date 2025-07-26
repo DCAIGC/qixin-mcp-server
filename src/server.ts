@@ -1089,6 +1089,12 @@ class QixinMcpServer {
       // 处理进程退出信号
       this.setupGracefulShutdown();
 
+      // 在 Windows 上防止进程立即退出
+      if (process.platform === 'win32' && process.env.npm_config_user_agent?.includes('npx')) {
+        // 保持进程运行
+        process.stdin.resume();
+      }
+
     } catch (error) {
       this.logger.error('启动 SSE 模式失败', error);
       throw error;

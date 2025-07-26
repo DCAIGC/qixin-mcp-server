@@ -7,6 +7,11 @@
   "bin": {
     "qixin-mcp-server": "./dist/server.js"
   },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
   "directories": {
     "doc": "docs"
   },
@@ -19,17 +24,34 @@
     "test": "jest",
     "test:sse": "node examples/sse-test.js",
     "lint": "eslint src/**/*.ts",
-    "format": "prettier --write src/**/*.ts"
+    "format": "prettier --write src/**/*.ts",
+    "prepublishOnly": "npm run build && npm run lint",
+    "prepare": "npm run build"
   },
   "keywords": [
     "mcp",
+    "model-context-protocol",
     "qixin",
+    "qixinbao",
     "enterprise",
     "business",
-    "api"
+    "api",
+    "china",
+    "company-information",
+    "business-information",
+    "ai-assistant",
+    "claude"
   ],
-  "author": "",
+  "author": "DC <cdomain@foxmail.com>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DCAIGC/qixin-mcp-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/DCAIGC/qixin-mcp-server/issues"
+  },
+  "homepage": "https://github.com/DCAIGC/qixin-mcp-server#readme",
   "engines": {
     "node": ">=18.0.0"
   },

@@ -1,9 +1,9 @@
 import * as http from 'http';
 import * as url from 'url';
+import { URL } from 'url';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { SSETransport } from '../transport/sse-transport';
 import { Logger } from '../utils/logger';
-import { JSONRPCMessage } from '@modelcontextprotocol/sdk/types.js';
 
 /**
  * SSE 服务器管理器
@@ -127,10 +127,9 @@ export class SSEServerManager {
     const authHeader = req.headers['authorization'] as string;
     
     // 方法3: 检查URL查询参数
-    const url = require('url');
-    const parsedUrl = url.parse(req.url || '', true);
-    const queryAppKey = parsedUrl.query['app_key'] as string;
-    const querySecretKey = parsedUrl.query['secret_key'] as string;
+    const urlObj = new URL(req.url || '', `http://${req.headers.host}`);
+    const queryAppKey = urlObj.searchParams.get('app_key') || undefined;
+    const querySecretKey = urlObj.searchParams.get('secret_key') || undefined;
 
     // 如果提供了自定义认证信息，验证它们
     if (headerAppKey && headerSecretKey) {
@@ -229,8 +228,8 @@ export class SSEServerManager {
       try {
         this.logger.info('收到 POST 消息', { body });
 
-        // 解析 JSON 消息
-        const message: JSONRPCMessage = JSON.parse(body);
+        // 解析 JSON 消息 (仅用于验证格式)
+        JSON.parse(body);
 
         // 广播消息到所有活跃的传输
         // 注意：这是一个简化的实现，实际应用中可能需要更复杂的路由逻辑

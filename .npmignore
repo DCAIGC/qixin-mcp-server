@@ -1,0 +1,41 @@
+# Development files
+src/
+tests/
+docs/*.pdf
+examples/
+*.md
+!README.md
+
+# TypeScript configuration
+tsconfig.json
+jest.config.js
+eslint.config.js
+
+# Environment files
+.env
+.env.*
+env.example
+
+# IDE and OS files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+
+# Development dependencies
+node_modules/
+coverage/
+.nyc_output/
+
+# Git
+.git/
+.gitignore
+
+# Other
+接口*.md
+CLAUDE.md

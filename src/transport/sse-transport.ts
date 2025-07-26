@@ -107,7 +107,7 @@ export class SSETransport extends EventEmitter implements Transport {
       
       // 关闭响应流
       this.response.end();
-    } catch (error) {
+    } catch {
       // 忽略关闭时的错误
     }
 
@@ -133,7 +133,7 @@ export class SSETransport extends EventEmitter implements Transport {
     try {
       const jsonMessage = JSON.parse(message) as JSONRPCMessage;
       this.emit('message', jsonMessage);
-    } catch (error) {
+    } catch {
       this.emit('error', new Error(`Invalid JSON message: ${message}`));
     }
   }

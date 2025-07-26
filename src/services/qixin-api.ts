@@ -374,17 +374,17 @@ export class QixinApiClient {
 
   /**
    * 查询被执行企业
-   * @param keyword 企业全名/注册号/统一社会信用代码
+   * @param name 企业全名/注册号/统一社会信用代码
    * @param skip 跳过条目数
    * @returns 被执行企业信息
    */
-  public async getExecutedEnterprise(keyword: string, skip?: number): Promise<ExecutedEnterpriseResult> {
-    if (!keyword || keyword.trim().length === 0) {
-      throw new QixinApiError('查询关键词不能为空');
+  public async getExecutedEnterprise(name: string, skip?: number): Promise<ExecutedEnterpriseResult> {
+    if (!name || name.trim().length === 0) {
+      throw new QixinApiError('企业名称不能为空');
     }
 
     const endpoint = '/execution/getExecutedpersonListByName';
-    const params: any = { name: keyword.trim() };
+    const params: any = { name: name.trim() };
     if (skip !== undefined) params.skip = skip;
 
     try {
@@ -454,18 +454,18 @@ export class QixinApiClient {
 
   /**
    * 查询裁判文书列表
-   * @param keyword 企业名称
+   * @param name 企业名称
    * @param matchType 匹配类型
    * @param skip 跳过条目数
    * @returns 裁判文书列表
    */
-  public async getLegalDocuments(keyword: string, matchType?: 'litigant' | 'judge', skip?: number): Promise<LegalDocumentsResult> {
-    if (!keyword || keyword.trim().length === 0) {
-      throw new QixinApiError('查询关键词不能为空');
+  public async getLegalDocuments(name: string, matchType?: 'litigant' | 'judge', skip?: number): Promise<LegalDocumentsResult> {
+    if (!name || name.trim().length === 0) {
+      throw new QixinApiError('企业名称不能为空');
     }
 
     const endpoint = '/lawsuit/getLawsuitListByName';
-    const params: any = { name: keyword.trim() };
+    const params: any = { name: name.trim() };
     if (matchType) params.matchType = matchType;
     if (skip !== undefined) params.skip = skip;
 
@@ -496,16 +496,16 @@ export class QixinApiClient {
 
   /**
    * 查询企业三层族谱
-   * @param eid 企业ID
+   * @param name 企业全名/注册号/统一社会信用代码
    * @returns 企业三层族谱信息
    */
-  public async getEnterpriseGenealogy3(eid: string): Promise<EnterpriseGenealogy3Result> {
-    if (!eid || eid.trim().length === 0) {
-      throw new QixinApiError('企业ID不能为空');
+  public async getEnterpriseGenealogy3(name: string): Promise<EnterpriseGenealogy3Result> {
+    if (!name || name.trim().length === 0) {
+      throw new QixinApiError('企业名称不能为空');
     }
 
     const endpoint = '/relation/getRelationInfoByName';
-    const params = { name: eid.trim() };
+    const params = { name: name.trim() };
 
     try {
       const data = await this.requestWithRetry<QixinApiResponse<EnterpriseGenealogy3Result>>(

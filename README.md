@@ -104,8 +104,7 @@ Docker 服务默认运行在 3000 端口，可通过环境变量配置修改。
   "establishDate": "2010-03-03",
   "businessStatus": "开业",
   "businessScope": "技术开发；技术转让...",
-  "registeredAddress": "北京市海淀区...",
-  "enterprises_id": "xxxx"  // 用于族谱查询
+  "registeredAddress": "北京市海淀区..."
 }
 ```
 
@@ -168,7 +167,7 @@ Docker 服务默认运行在 3000 端口，可通过环境变量配置修改。
 查询企业的股权关系图谱（向上3层股东，向下3层投资）。
 
 **参数：**
-- `eid` (string, 必需): 企业ID（使用基本信息接口返回的 enterprises_id）
+- `name` (string, 必需): 企业全名/注册号/统一社会信用代码
 
 #### 9. `get_admin_penalty` - 行政处罚
 

@@ -145,7 +145,7 @@ class QixinMcpServer {
           inputSchema: {
             type: 'object',
             properties: {
-              keyword: {
+              name: {
                 type: 'string',
                 description: '企业全名/注册号/统一社会信用代码',
               },
@@ -154,7 +154,7 @@ class QixinMcpServer {
                 description: '跳过条目数（默认为0，单页返回10条数据）',
               },
             },
-            required: ['keyword'],
+            required: ['name'],
           },
         },
         {
@@ -181,7 +181,7 @@ class QixinMcpServer {
           inputSchema: {
             type: 'object',
             properties: {
-              keyword: {
+              name: {
                 type: 'string',
                 description: '企业名称',
               },
@@ -194,7 +194,7 @@ class QixinMcpServer {
                 description: '跳过条目数（默认不填返回前20条）',
               },
             },
-            required: ['keyword'],
+            required: ['name'],
           },
         },
         {
@@ -203,12 +203,12 @@ class QixinMcpServer {
           inputSchema: {
             type: 'object',
             properties: {
-              eid: {
+              name: {
                 type: 'string',
-                description: '企业ID（使用工商照面接口返回的enterprises_id）',
+                description: '企业全名/注册号/统一社会信用代码',
               },
             },
-            required: ['eid'],
+            required: ['name'],
           },
         },
         {
@@ -302,7 +302,7 @@ class QixinMcpServer {
 
       if (name === 'get_executed_enterprise') {
         // 验证参数结构
-        if (!args || typeof args !== 'object' || !('keyword' in args)) {
+        if (!args || typeof args !== 'object' || !('name' in args)) {
           throw new Error('Invalid arguments for get_executed_enterprise');
         }
         return await this.handleGetExecutedEnterprise(args as unknown as GetExecutedEnterpriseArgs);
@@ -318,7 +318,7 @@ class QixinMcpServer {
 
       if (name === 'get_legal_documents') {
         // 验证参数结构
-        if (!args || typeof args !== 'object' || !('keyword' in args)) {
+        if (!args || typeof args !== 'object' || !('name' in args)) {
           throw new Error('Invalid arguments for get_legal_documents');
         }
         return await this.handleGetLegalDocuments(args as unknown as GetLegalDocumentsArgs);
@@ -326,7 +326,7 @@ class QixinMcpServer {
 
       if (name === 'get_enterprise_genealogy3') {
         // 验证参数结构
-        if (!args || typeof args !== 'object' || !('eid' in args)) {
+        if (!args || typeof args !== 'object' || !('name' in args)) {
           throw new Error('Invalid arguments for get_enterprise_genealogy3');
         }
         return await this.handleGetEnterpriseGenealogy3(args as unknown as GetEnterpriseGenealogy3Args);
@@ -611,19 +611,19 @@ class QixinMcpServer {
    * 处理被执行企业查询
    */
   private async handleGetExecutedEnterprise(args: GetExecutedEnterpriseArgs) {
-    this.logger.info('查询被执行企业', { keyword: args.keyword, skip: args.skip });
+    this.logger.info('查询被执行企业', { name: args.name, skip: args.skip });
 
     try {
       // 参数验证
-      if (!args.keyword || typeof args.keyword !== 'string') {
-        throw new Error('keyword 参数必须是非空字符串');
+      if (!args.name || typeof args.name !== 'string') {
+        throw new Error('name 参数必须是非空字符串');
       }
 
       // 调用 API
-      const result = await this.apiClient.getExecutedEnterprise(args.keyword, args.skip);
+      const result = await this.apiClient.getExecutedEnterprise(args.name, args.skip);
 
       this.logger.info('查询成功', { 
-        keyword: args.keyword, 
+        name: args.name, 
         total: result.total,
         count: result.items?.length || 0
       });
@@ -732,22 +732,22 @@ class QixinMcpServer {
    */
   private async handleGetLegalDocuments(args: GetLegalDocumentsArgs) {
     this.logger.info('查询裁判文书列表', { 
-      keyword: args.keyword, 
+      name: args.name, 
       matchType: args.matchType,
       skip: args.skip 
     });
 
     try {
       // 参数验证
-      if (!args.keyword || typeof args.keyword !== 'string') {
-        throw new Error('keyword 参数必须是非空字符串');
+      if (!args.name || typeof args.name !== 'string') {
+        throw new Error('name 参数必须是非空字符串');
       }
 
       // 调用 API
-      const result = await this.apiClient.getLegalDocuments(args.keyword, args.matchType, args.skip);
+      const result = await this.apiClient.getLegalDocuments(args.name, args.matchType, args.skip);
 
       this.logger.info('查询成功', { 
-        keyword: args.keyword, 
+        name: args.name, 
         total: result.total,
         num: result.num
       });
@@ -795,19 +795,19 @@ class QixinMcpServer {
    * 处理企业三层族谱查询
    */
   private async handleGetEnterpriseGenealogy3(args: GetEnterpriseGenealogy3Args) {
-    this.logger.info('查询企业三层族谱', { eid: args.eid });
+    this.logger.info('查询企业三层族谱', { name: args.name });
 
     try {
       // 参数验证
-      if (!args.eid || typeof args.eid !== 'string') {
-        throw new Error('eid 参数必须是非空字符串');
+      if (!args.name || typeof args.name !== 'string') {
+        throw new Error('name 参数必须是非空字符串');
       }
 
       // 调用 API
-      const result = await this.apiClient.getEnterpriseGenealogy3(args.eid);
+      const result = await this.apiClient.getEnterpriseGenealogy3(args.name);
 
       this.logger.info('查询成功', { 
-        eid: args.eid, 
+        name: args.name, 
         node_num: result.node_num,
         share_holders_count: result.share_holders?.length || 0,
         invests_count: result.invests?.length || 0

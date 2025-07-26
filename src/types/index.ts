@@ -143,7 +143,7 @@ export class ConfigError extends Error {
  * 被执行企业参数接口
  */
 export interface GetExecutedEnterpriseArgs {
-  keyword: string;
+  name: string;
   skip?: number;
 }
 
@@ -208,7 +208,7 @@ export interface DishonestEnterpriseResult {
  * 裁判文书列表参数接口
  */
 export interface GetLegalDocumentsArgs {
-  keyword: string;
+  name: string;
   matchType?: 'litigant' | 'judge';
   skip?: number;
 }
@@ -247,7 +247,7 @@ export interface LegalDocumentsResult {
  * 三层族谱参数接口
  */
 export interface GetEnterpriseGenealogy3Args {
-  eid: string;
+  name: string;
 }
 
 /**

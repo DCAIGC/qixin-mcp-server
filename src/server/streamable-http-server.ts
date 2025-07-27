@@ -3,7 +3,7 @@ import * as url from 'url';
 import { URL } from 'url';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { Logger } from '../utils/logger';
-import { StreamableHTTPTransport } from '../transport/streamable-http-transport';
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { 
   JSONRPCRequest, 
   JSONRPCResponse, 
@@ -107,33 +107,20 @@ export class StreamableHTTPServerManager {
         // 解析 JSON-RPC 请求
         const request: JSONRPCRequest = JSON.parse(body);
 
-        // 设置流式响应头
-        res.writeHead(200, {
-          'Content-Type': 'application/x-ndjson',
-          'Transfer-Encoding': 'chunked',
-          'Cache-Control': 'no-cache',
-          'X-Accel-Buffering': 'no'  // 禁用 nginx 缓冲
+        // 创建 Streamable HTTP Server 传输
+        // 对于无状态模式，sessionIdGenerator 设置为 undefined
+        const transport = new StreamableHTTPServerTransport({
+          sessionIdGenerator: undefined
         });
-
-        // 创建 Streamable HTTP 传输
-        const transport = new StreamableHTTPTransport(res);
 
         // 处理请求
         try {
           // 连接到 MCP 服务器
           await this.mcpServer.connect(transport);
 
-          // 将请求消息发送给 MCP 服务器处理
-          transport.handleMessage(JSON.stringify(request));
-
-          // 监听传输关闭
-          transport.onClose(() => {
-            this.logger.info('Streamable HTTP 传输已关闭');
-          });
-
-          transport.onError((error) => {
-            this.logger.error('Streamable HTTP 传输错误', error);
-          });
+          // 调用 transport 的 handleRequest 方法
+          // 传递原始的 req、res 和解析后的 body
+          await transport.handleRequest(req, res, request);
 
         } catch (error) {
           this.logger.error('处理 MCP 请求失败', error);

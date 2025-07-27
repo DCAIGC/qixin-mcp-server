@@ -71,7 +71,9 @@ class QixinMcpServer {
    */
   private setupTools(): void {
     // 注册列出工具的处理器
-    this.server.setRequestHandler(ListToolsRequestSchema, async () => ({
+    this.server.setRequestHandler(ListToolsRequestSchema, async () => {
+      this.logger.info('收到列出工具请求');
+      return {
       tools: [
         {
           name: 'get_enterprise_basic_info',
@@ -264,7 +266,8 @@ class QixinMcpServer {
           },
         },
       ],
-    }));
+    };
+    });
 
     // 注册调用工具的处理器
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {

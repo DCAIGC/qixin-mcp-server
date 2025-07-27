@@ -56,17 +56,25 @@ export class StreamableHTTPTransport implements Transport {
       // 写入响应流
       if (!this.res.writableEnded) {
         this.res.write(line);
-        this.logger.debug('发送消息', { message });
+        this.logger.info('发送响应到客户端', { 
+          messageId: 'id' in message ? message.id : 'no-id',
+          method: 'method' in message ? message.method : 'response',
+          hasResult: 'result' in message,
+          hasError: 'error' in message
+        });
         
         // 如果是响应消息（有 id 且不是通知），考虑是否结束流
         if ('id' in message && message.id !== null && !('method' in message)) {
           // 对于最终响应，稍后结束连接（允许缓冲区清空）
           setTimeout(() => {
             if (!this.res.writableEnded && !this.closed) {
+              this.logger.info('结束响应流');
               this.close();
             }
           }, 100);
         }
+      } else {
+        this.logger.warn('响应流已结束，无法发送消息');
       }
     } catch (error) {
       this.logger.error('发送消息失败', error);

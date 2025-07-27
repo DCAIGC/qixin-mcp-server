@@ -10,7 +10,7 @@
 - 🌐 **关系图谱查询**：企业三层族谱、对外担保信息
 - 🔐 **安全认证**：使用 MD5 签名算法保证 API 调用安全
 - ⚡ **高性能设计**：支持请求重试、错误处理和日志记录
-- 🛠️ **多种运行模式**：支持 stdio 和 SSE 两种运行方式
+- 🛠️ **多种运行模式**：支持 stdio、SSE 和 Streamable HTTP 三种运行方式
 - 📦 **TypeScript 开发**：提供完整的类型定义和代码提示
 
 ## 前置要求
@@ -61,7 +61,27 @@ SSE 模式提供以下端点：
 - `GET /health` - 健康检查
 - `GET /` - 服务器信息
 
-### 3. Docker 部署（SSE 模式）
+### 3. Streamable HTTP 模式（适用于 Dify）
+
+为不支持 SSE 的平台（如 Dify）提供流式 HTTP 响应：
+
+```bash
+# 启动 Streamable HTTP 服务器
+MCP_STREAMABLE_HTTP=true QIXIN_APP_KEY=your_app_key QIXIN_SECRET_KEY=your_secret_key npx qixin-mcp-server
+
+# 或使用命令行参数
+npx qixin-mcp-server --streamable-http
+
+# 自定义端口（默认 3000）
+PORT=8080 MCP_STREAMABLE_HTTP=true npx qixin-mcp-server
+```
+
+Streamable HTTP 模式提供以下端点：
+- `POST /stream` - 发送 JSON-RPC 请求并接收流式响应（NDJSON格式）
+- `GET /health` - 健康检查
+- `GET /` - 服务器信息
+
+### 4. Docker 部署
 
 使用 Docker Compose 部署：
 
@@ -73,8 +93,11 @@ cd docker
 cp .env.example .env
 # 编辑 .env 文件，填入您的 API 密钥
 
-# 3. 启动服务
+# 3. 启动服务（默认 SSE 模式）
 docker-compose up -d
+
+# 或启动 Streamable HTTP 模式
+MCP_STREAMABLE_HTTP=true docker-compose up -d
 
 # 4. 查看日志
 docker-compose logs -f

@@ -24,6 +24,7 @@ import {
   QixinApiError 
 } from './types/index';
 import { SSEServerManager } from './server/sse-server';
+import { StreamableHTTPServerManager } from './server/streamable-http-server';
 
 /**
  * 启信宝 MCP Server 类
@@ -33,6 +34,7 @@ class QixinMcpServer {
   private apiClient: QixinApiClient;
   private logger: Logger;
   private sseServerManager?: SSEServerManager;
+  private streamableHTTPServerManager?: StreamableHTTPServerManager;
 
   constructor() {
     this.logger = Logger.create('QixinMcpServer');
@@ -1043,7 +1045,10 @@ class QixinMcpServer {
       // 检查运行模式
       const args = process.argv.slice(2);
       
-      if (args.includes('--sse') || process.env.MCP_SSE === 'true') {
+      if (args.includes('--streamable-http') || process.env.MCP_STREAMABLE_HTTP === 'true') {
+        // Streamable HTTP 模式
+        await this.startStreamableHTTPMode();
+      } else if (args.includes('--sse') || process.env.MCP_SSE === 'true') {
         // SSE 模式
         await this.startSSEMode();
       } else {
@@ -1102,6 +1107,39 @@ class QixinMcpServer {
   }
 
   /**
+   * 启动 Streamable HTTP 模式
+   */
+  private async startStreamableHTTPMode(): Promise<void> {
+    const port = Config.getPort();
+    this.logger.info(`启动 Streamable HTTP 模式，端口: ${port}`);
+    
+    try {
+      // 创建 Streamable HTTP 服务器管理器
+      this.streamableHTTPServerManager = new StreamableHTTPServerManager(this.server, port);
+      
+      this.logger.info(`Streamable HTTP 服务器已启动，监听端口: ${port}`);
+      this.logger.info('为 Dify 等平台提供流式 HTTP 响应支持');
+      this.logger.info('可用端点:');
+      this.logger.info(`  - POST http://localhost:${port}/stream - 发送 JSON-RPC 请求并接收流式响应`);
+      this.logger.info(`  - GET  http://localhost:${port}/health - 健康检查`);
+      this.logger.info(`  - GET  http://localhost:${port}/       - 服务器信息`);
+
+      // 处理进程退出信号
+      this.setupGracefulShutdown();
+
+      // 在 Windows 上防止进程立即退出
+      if (process.platform === 'win32' && process.env.npm_config_user_agent?.includes('npx')) {
+        // 保持进程运行
+        process.stdin.resume();
+      }
+
+    } catch (error) {
+      this.logger.error('启动 Streamable HTTP 模式失败', error);
+      throw error;
+    }
+  }
+
+  /**
    * 设置优雅关闭
    */
   private setupGracefulShutdown(): void {
@@ -1110,6 +1148,10 @@ class QixinMcpServer {
       
       if (this.sseServerManager) {
         await this.sseServerManager.close();
+      }
+      
+      if (this.streamableHTTPServerManager) {
+        await this.streamableHTTPServerManager.close();
       }
       
       this.logger.info('服务器已关闭');

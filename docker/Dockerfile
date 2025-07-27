@@ -22,5 +22,9 @@ ENV PORT=3000
 
 EXPOSE 3000
 
-# Default to SSE mode, can be overridden with environment variables
-CMD ["sh", "-c", "if [ \"$MCP_STREAMABLE_HTTP\" = \"true\" ]; then npm run start:streamable-http; else npm run start:sse; fi"]
+# Copy start script
+COPY docker/start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
+# Use start script
+CMD ["/app/start.sh"]

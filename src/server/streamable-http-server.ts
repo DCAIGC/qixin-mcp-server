@@ -82,9 +82,14 @@ export class StreamableHTTPServerManager {
     if (!authResult.success) {
       this.logger.warn('请求认证失败', { reason: authResult.error });
       res.writeHead(401, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ 
-        error: 'Authentication failed', 
-        message: authResult.error 
+      res.end(JSON.stringify({
+        jsonrpc: '2.0',
+        id: null,
+        error: {
+          code: -32002,
+          message: 'Authentication failed',
+          data: authResult.error
+        }
       }));
       return;
     }
@@ -154,7 +159,15 @@ export class StreamableHTTPServerManager {
         
         if (!res.headersSent) {
           res.writeHead(400, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: 'Invalid JSON request' }));
+          res.end(JSON.stringify({
+            jsonrpc: '2.0',
+            id: null,
+            error: {
+              code: -32700,
+              message: 'Parse error',
+              data: 'Invalid JSON request'
+            }
+          }));
         }
       }
     });
@@ -325,32 +338,52 @@ export class StreamableHTTPServerManager {
   }
 
   /**
-   * 发送 404 错误
+   * 发送 404 错误（JSON-RPC 格式）
    */
   private send404(res: http.ServerResponse): void {
     res.writeHead(404, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ error: 'Not Found' }));
+    res.end(JSON.stringify({
+      jsonrpc: '2.0',
+      id: null,
+      error: {
+        code: -32001,
+        message: 'Not Found'
+      }
+    }));
   }
 
   /**
-   * 发送 405 错误
+   * 发送 405 错误（JSON-RPC 格式）
    */
   private send405(res: http.ServerResponse, allowedMethods: string[]): void {
     res.writeHead(405, { 
       'Content-Type': 'application/json',
       'Allow': allowedMethods.join(', ')
     });
-    res.end(JSON.stringify({ error: 'Method Not Allowed' }));
+    res.end(JSON.stringify({
+      jsonrpc: '2.0',
+      id: null,
+      error: {
+        code: -32000,
+        message: 'Method not allowed',
+        data: `Allowed methods: ${allowedMethods.join(', ')}`
+      }
+    }));
   }
 
   /**
-   * 发送 500 错误
+   * 发送 500 错误（JSON-RPC 格式）
    */
   private send500(res: http.ServerResponse, error: any): void {
     res.writeHead(500, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ 
-      error: 'Internal Server Error',
-      message: error?.message || 'Unknown error'
+    res.end(JSON.stringify({
+      jsonrpc: '2.0',
+      id: null,
+      error: {
+        code: -32603,
+        message: 'Internal error',
+        data: error?.message || 'Unknown error'
+      }
     }));
   }
 

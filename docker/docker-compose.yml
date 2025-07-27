@@ -7,7 +7,8 @@ services:
       dockerfile: docker/Dockerfile
     container_name: qixin-mcp-server
     environment:
-      - MCP_SSE=true
+      - MCP_SSE=${MCP_SSE:-false}
+      - MCP_STREAMABLE_HTTP=${MCP_STREAMABLE_HTTP:-false}
       - PORT=3000
       - QIXIN_APP_KEY=${QIXIN_APP_KEY}
       - QIXIN_SECRET_KEY=${QIXIN_SECRET_KEY}
